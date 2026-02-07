@@ -30,8 +30,10 @@ const Learning = () => {
     const currentRequest = userRequest.trim();
     setUserRequest("");
 
-    // Save user question to chat history immediately
-    setChatHistory((prev) => [...prev, { type: "user", message: currentRequest }]);
+    setChatHistory((prev) => [
+      ...prev,
+      { type: "user", message: currentRequest },
+    ]);
 
     const prompt = `
 You are an expert ${topic} educator with 10+ years of teaching experience.
@@ -58,8 +60,14 @@ Return ONLY valid JSON array with 1 object:
       const data = JSON.parse(cleaned);
       const item = Array.isArray(data) ? data[0] : data;
 
-      // Save AI response to chat history
-      setChatHistory((prev) => [...prev, { type: "ai", message: item.answer, summary: item.summary }]);
+      setChatHistory((prev) => [
+        ...prev,
+        {
+          type: "ai",
+          message: item.answer,
+          summary: item.summary,
+        },
+      ]);
     } catch (err) {
       console.log("AI Error:", err);
       setError("Something went wrong. Please try again.");
@@ -72,72 +80,82 @@ Return ONLY valid JSON array with 1 object:
     <>
       <Navbar />
 
-      <div className="max-w-4xl mx-auto px-6 mt-10 flex flex-col gap-6">
+      {/* PAGE BACKGROUND */}
+      <div className="bg-zinc-950 min-h-screen">
+        <div className="max-w-4xl mx-auto px-6 py-10 flex flex-col gap-6">
 
-        {/* Subject selector on top-right */}
-        <div className="flex justify-end mb-2">
-          <select
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            className="bg-zinc-900 border border-zinc-800 text-white text-sm rounded-2xl px-4 py-2 focus:border-sky-500 outline-none transition"
-          >
-            <option value="" disabled>Select Subject</option>
-            <option>JavaScript</option>
-            <option>React</option>
-            <option>Python</option>
-            <option>HTML/CSS</option>
-            <option>Machine Learning</option>
-          </select>
-        </div>
+          {/* SUBJECT SELECT */}
+          <div className="flex justify-end">
+            <select
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              className="bg-zinc-900 border border-zinc-800 text-white text-sm rounded-2xl px-4 py-2 focus:border-sky-500 outline-none"
+            >
+              <option value="" disabled>Select Subject</option>
+              <option>JavaScript</option>
+              <option>React</option>
+              <option>Python</option>
+              <option>HTML/CSS</option>
+              <option>Machine Learning</option>
+            </select>
+          </div>
 
-        {/* Error */}
-        {error && (
-          <div className="text-red-500 text-sm">{error}</div>
-        )}
+          {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        {/* Chat history */}
-        <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-4 shadow-md min-h-[300px] max-h-[60vh] overflow-y-auto transition flex flex-col gap-4">
-          {chatHistory.map((chat, index) => (
-            <div key={index} className={`p-3 rounded-xl max-w-[80%] ${chat.type === "user" ? "self-end bg-sky-500 text-black" : "self-start bg-zinc-900 text-white"}`}>
-              {chat.type === "ai" && chat.summary && (
-                <p className="text-sky-400 font-bold mb-1">{chat.summary}</p>
-              )}
-              <p className="text-sm whitespace-pre-wrap">{chat.message}</p>
-            </div>
-          ))}
+          {/* CHAT BOX */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 min-h-[300px] max-h-[60vh] overflow-y-auto flex flex-col gap-4">
 
-          {loading && (
-            <div className="self-start p-3 bg-zinc-900 rounded-xl text-zinc-400 flex items-center gap-2">
-              <span>AI is thinking...</span>
-              <span className="flex gap-1">
-                <span className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0s" }}></span>
-                <span className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0.15s" }}></span>
-                <span className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0.3s" }}></span>
-              </span>
-            </div>
-          )}
-          <div ref={messagesEndRef}></div>
-        </div>
+            {chatHistory.map((chat, index) => (
+              <div
+                key={index}
+                className={`p-3 rounded-xl max-w-[80%] text-sm whitespace-pre-wrap
+                  ${
+                    chat.type === "user"
+                      ? "self-end bg-sky-500 text-black"
+                      : "self-start bg-zinc-800 text-white"
+                  }`}
+              >
+                {chat.type === "ai" && chat.summary && (
+                  <p className="font-bold text-sky-400 mb-1">
+                    {chat.summary}
+                  </p>
+                )}
+                {chat.message}
+              </div>
+            ))}
 
-        {/* Input + Send button */}
-        <div className="flex gap-2 items-end">
-          <textarea
-            value={userRequest}
-            onChange={(e) => setUserRequest(e.target.value)}
-            onKeyDown={(e) =>
-              e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleRequest())
-            }
-            placeholder="Ask a technical question..."
-            rows={1}
-            className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 resize-none transition"
-          />
+            {loading && (
+              <div className="self-start bg-zinc-800 text-white p-3 rounded-xl">
+                AI is thinking...
+              </div>
+            )}
 
-          <button
-            onClick={handleRequest}
-            className="bg-sky-500 text-black px-8 py-4 rounded-2xl font-semibold hover:bg-sky-600 transition shadow-md"
-          >
-            Send
-          </button>
+            <div ref={messagesEndRef}></div>
+          </div>
+
+          {/* INPUT AREA */}
+          <div className="flex gap-2 items-end">
+            <textarea
+              value={userRequest}
+              onChange={(e) => setUserRequest(e.target.value)}
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                (e.preventDefault(), handleRequest())
+              }
+              placeholder="Ask a technical question..."
+              rows={1}
+              className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-4 text-sm text-white placeholder:text-zinc-500 outline-none resize-none focus:border-sky-500"
+            />
+
+            <button
+              onClick={handleRequest}
+              className="bg-sky-500 text-black px-8 py-4 rounded-2xl font-semibold hover:bg-sky-600 transition"
+            >
+              Send
+            </button>
+          </div>
+
         </div>
       </div>
 
